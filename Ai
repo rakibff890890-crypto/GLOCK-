@@ -1,0 +1,76 @@
+import cv2
+import shutil
+import subprocess
+from pathlib import Path
+
+TEMP_DIR = "temp"
+FRAMES_DIR = os.path.join(TEMP_DIR, "frames")
+OUTPUT_DIR = os.path.join(TEMP_DIR, "output")
+
+os.makedirs(FRAMES_DIR, exist_ok=True)
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+def extract_frames(video_path):
+
+    shutil.rmtree(FRAMES_DIR, ignore_errors=True)
+    os.makedirs(FRAMES_DIR, exist_ok=True)
+
+    cap = cv2.VideoCapture(video_path)
+
+    index = 0
+
+    while True:
+
+        ret, frame = cap.read()
+
+        if not ret:
+            break
+
+        cv2.imwrite(
+            os.path.join(FRAMES_DIR, f"{index:06d}.png"),
+            frame
+        )
+
+        index += 1
+
+    cap.release()
+
+    return indexdef build_video(fps, output_name):
+
+    command = [
+        "ffmpeg",
+        "-y",
+        "-framerate",
+        str(fps),
+        "-i",
+        f"{OUTPUT_DIR}/%06d.png",
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        output_name,
+    ]
+
+    subprocess.run(command)
+
+    return output_namedef enhance_video(video, upscale, denoise, sharpen, fps):
+
+    total = extract_frames(video)
+
+    return (
+        video,
+        f"{total} Frames Extracted Successfully"
+    )
+run_btn.click(
+    enhance_video,
+    inputs=[
+        video_input,
+        upscale,
+        denoise,
+        sharpen,
+        fps,
+    ],
+    outputs=[
+        output_video,
+        status,
+    ],
+)
